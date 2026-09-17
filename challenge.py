@@ -18,42 +18,37 @@ Test cases can be found in test_challenge.py.
 """
 
 def validate(puzzle: str) -> bool:
-    if not _has_valid_format(puzzle):
+    if not has_valid_format(puzzle):
         return False
-    return _rows_are_valid(puzzle) and _columns_are_valid(puzzle) and _blocks_are_valid(puzzle)
+    return rows_are_valid(puzzle) and columns_are_valid(puzzle) and blocks_are_valid(puzzle)
 
 
-def _has_valid_format(puzzle: str) -> bool:
+def has_valid_format(puzzle: str) -> bool:
     return len(puzzle) == 81 and puzzle.isdigit() and "0" not in puzzle
 
 
-def _rows_are_valid(puzzle: str) -> bool:
-    for i in range(9):
-        row = puzzle[i*9:(i+1)*9]
-        if len(set(row)) != 9:
+def rows_are_valid(puzzle: str) -> bool:
+    for row in range(9):
+        row_chars = puzzle[row*9:(row+1)*9]
+        if len(set(row_chars)) != 9:
             return False
     return True
 
 
-def _columns_are_valid(puzzle: str) -> bool:
-    for j in range(9):
-        column = puzzle[j::9]
-        if len(set(column)) != 9:
+def columns_are_valid(puzzle: str) -> bool:
+    for col in range(9):
+        col_chars = puzzle[col::9]
+        if len(set(col_chars)) != 9:
             return False
     return True
 
 
-def _blocks_are_valid(puzzle: str) -> bool:
-    for section in range(3):
-        row_shift = section * 3
-        blocks = [[], [], []]
-        for i in range(3):
-            row = row_shift + i
-            row_start = row * 9
-            for col_shift in range(3):
-                start = row_start + col_shift * 3
-                blocks[col_shift].extend(puzzle[start:start + 3])
-        for block in blocks:
-            if len(set(block)) != 9:
-                return False
-    return True
+def blocks_are_valid(puzzle: str) -> bool:
+    blocks = [[] for _ in range(9)]          # one bucket per block, B0..B8
+    for row in range(9):                     # outer loop: every row of the puzzle
+        row_start = row * 9                  # index where this row begins in the flat string
+        section = (row // 3) * 3             # which section this row belongs to: 0, 3, or 6
+        for block_col in range(3):           # inner loop: the 3 blocks across this row
+            col_start = row_start + block_col * 3
+            blocks[section + block_col].extend(puzzle[col_start:col_start + 3])
+    return all(len(set(block)) == 9 for block in blocks)
